@@ -2,7 +2,8 @@ from threading import Thread
 from pynput.keyboard import Key, KeyCode, Listener
 
 import serial
-ser = serial.Serial("/dev/cu.usbmodem141111", 9600)
+
+ser = serial.Serial("/dev/cu.usbmodem14241", 9600)
 ser.flushInput
 
 def read_serial():
@@ -54,7 +55,7 @@ def on_press(key):
     print('{0} pressed - send 0x{1}'.format(key, hexCode['make']))
     write(hexCode['make'])
   else:
-    print('{0} pressed - no correspondent key')
+    print('{0} pressed - no correspondent key'.format(key))
 
 def on_release(key):
   hexCode = getItem(key)
@@ -63,7 +64,7 @@ def on_release(key):
     print('{0} released - send 0x{1}'.format(key, hexCode['brk']))
     write(hexCode['brk'])
   else:
-    print('{0} pressed - no correspondent key')
+    print('{0} release - no correspondent key'.format(key))
 
 with Listener(on_press=on_press, on_release=on_release) as listener:
   listener.join()

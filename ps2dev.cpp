@@ -1,5 +1,5 @@
 /*
- * ps2dev.cpp - an interface library for ps2 host.  
+ * ps2dev.cpp - an interface library for ps2 host.
  * limitations:
  *      we do not handle parity errors.
  *      The timing constants are hard coded from the spec. Data rate is
@@ -8,7 +8,6 @@
  */
 
 #include "ps2dev.h"
-
 
 //since for the device side we are going to be in charge of the clock,
 //the two defines below are how long each _phase_ of the clock cycle is
@@ -35,15 +34,13 @@ PS2dev::PS2dev(int clk, int data)
  * various conditions.  It's done this way so you don't need
  * pullup resistors.
  */
-void
-PS2dev::gohi(int pin)
+void PS2dev::gohi(int pin)
 {
   pinMode(pin, INPUT);
   digitalWrite(pin, HIGH);
 }
 
-void
-PS2dev::golo(int pin)
+void PS2dev::golo(int pin)
 {
   pinMode(pin, OUTPUT);
   digitalWrite(pin, LOW);
@@ -57,50 +54,54 @@ int PS2dev::write(unsigned char data)
   //	Serial.print("sending ");
   //Serial.println(data,HEX);
 
-	
-  if (digitalRead(_ps2clk) == LOW) {
+  if (digitalRead(_ps2clk) == LOW)
+  {
     return -1;
   }
 
-  if (digitalRead(_ps2data) == LOW) {
+  if (digitalRead(_ps2data) == LOW)
+  {
     return -2;
   }
-
 
   golo(_ps2data);
   delayMicroseconds(CLKHALF);
   // device sends on falling clock
-  golo(_ps2clk);	// start bit
+  golo(_ps2clk); // start bit
   delayMicroseconds(CLKFULL);
   gohi(_ps2clk);
   delayMicroseconds(CLKHALF);
 
-  for (i=0; i < 8; i++)
-    {
-      if (data & 0x01)
-	{
-	  gohi(_ps2data);
-	} else {
-	golo(_ps2data);
-      }
-      delayMicroseconds(CLKHALF);
-      golo(_ps2clk);	
-      delayMicroseconds(CLKFULL);
-      gohi(_ps2clk);
-      delayMicroseconds(CLKHALF);
-
-      parity = parity ^ (data & 0x01);
-      data = data >> 1;
-    }
-  // parity bit
-  if (parity)
+  for (i = 0; i < 8; i++)
+  {
+    if (data & 0x01)
     {
       gohi(_ps2data);
-    } else {
+    }
+    else
+    {
+      golo(_ps2data);
+    }
+    delayMicroseconds(CLKHALF);
+    golo(_ps2clk);
+    delayMicroseconds(CLKFULL);
+    gohi(_ps2clk);
+    delayMicroseconds(CLKHALF);
+
+    parity = parity ^ (data & 0x01);
+    data = data >> 1;
+  }
+  // parity bit
+  if (parity)
+  {
+    gohi(_ps2data);
+  }
+  else
+  {
     golo(_ps2data);
   }
   delayMicroseconds(CLKHALF);
-  golo(_ps2clk);	
+  golo(_ps2clk);
   delayMicroseconds(CLKFULL);
   gohi(_ps2clk);
   delayMicroseconds(CLKHALF);
@@ -108,7 +109,7 @@ int PS2dev::write(unsigned char data)
   // stop bit
   gohi(_ps2data);
   delayMicroseconds(CLKHALF);
-  golo(_ps2clk);	
+  golo(_ps2clk);
   delayMicroseconds(CLKFULL);
   gohi(_ps2clk);
   delayMicroseconds(CLKHALF);
@@ -117,72 +118,68 @@ int PS2dev::write(unsigned char data)
   return 0;
 }
 
-
-int PS2dev::read(unsigned char * value)
+int PS2dev::read(unsigned char *value)
 {
   unsigned char data = 0x00;
   unsigned char i;
   unsigned char bit = 0x01;
-  
+
   unsigned char parity = 1;
-  
+
   //wait for data line to go low
-  while (digitalRead(_ps2data) == HIGH) {
-
-  } 
+  while (digitalRead(_ps2data) == HIGH)
+  {
+  }
   //wait for clock line to go high
-  while (digitalRead(_ps2clk) == LOW) {
+  while (digitalRead(_ps2clk) == LOW)
+  {
+  }
 
-  } 
-
-  
   delayMicroseconds(CLKHALF);
   golo(_ps2clk);
   delayMicroseconds(CLKFULL);
   gohi(_ps2clk);
   delayMicroseconds(CLKHALF);
 
-  for (i=0; i < 8; i++)
+  for (i = 0; i < 8; i++)
+  {
+    if (digitalRead(_ps2data) == HIGH)
     {
-      if (digitalRead(_ps2data) == HIGH)
-	{
-	  data = data | bit;
-	} else {
-      }
-
-
-      bit = bit << 1;
-      
-      delayMicroseconds(CLKHALF);
-      golo(_ps2clk);	
-      delayMicroseconds(CLKFULL);
-      gohi(_ps2clk);
-      delayMicroseconds(CLKHALF);
-      
-      parity = parity ^ (data & 0x01);
+      data = data | bit;
     }
+    else
+    {
+    }
+
+    bit = bit << 1;
+
+    delayMicroseconds(CLKHALF);
+    golo(_ps2clk);
+    delayMicroseconds(CLKFULL);
+    gohi(_ps2clk);
+    delayMicroseconds(CLKHALF);
+
+    parity = parity ^ (data & 0x01);
+  }
   // we do the delay at the end of the loop, so at this point we have
   // already done the delay for the parity bit
 
   // stop bit
   delayMicroseconds(CLKHALF);
-  golo(_ps2clk);	
+  golo(_ps2clk);
   delayMicroseconds(CLKFULL);
   gohi(_ps2clk);
   delayMicroseconds(CLKHALF);
-  
 
   delayMicroseconds(CLKHALF);
   golo(_ps2data);
-  golo(_ps2clk);	
+  golo(_ps2clk);
   delayMicroseconds(CLKFULL);
   gohi(_ps2clk);
   delayMicroseconds(CLKHALF);
   gohi(_ps2data);
 
-
   *value = data;
-  
+
   return 0;
 }
-

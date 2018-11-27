@@ -87,12 +87,13 @@ void setup() {
   Serial.begin(9600);
   // establish ps/2 connection with target
   Serial.println("Setup");
-  while(keyboard.write(0xAA)!=0){
-    digitalWrite(LedPin, HIGH);
-    delay(500);
-    digitalWrite(LedPin, LOW);
-    delay(500);
-  }
+  keyboard.write(0xAA);
+//   while(keyboard.write(0xAA)!=0){
+//     digitalWrite(LedPin, HIGH);
+//     delay(500);
+//     digitalWrite(LedPin, LOW);
+//     delay(500);
+//   }
   Serial.println("Connected");
   delay(100);
 
@@ -122,7 +123,7 @@ void loop() {
       Serial.println(incomingByte, HEX);
 
       keyboard.write(incomingByte);
-      delay(50);
+      delay(10);
     }
   }
 }
